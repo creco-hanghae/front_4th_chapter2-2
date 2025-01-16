@@ -1,6 +1,7 @@
-import { CartItem, Coupon, Product as ProductType } from '../../../types.ts';
+import { CartItem as CartItemType, Coupon, Product as ProductType } from '../../../types.ts';
 import { useCart } from "../../hooks/index.ts";
 import { Section } from '../Section.tsx';
+import { CartItem } from './CartItem.tsx';
 import { Product } from './Product.tsx';
 
 interface Props {
@@ -22,7 +23,7 @@ export const CartPage = ({ products, coupons }: Props) => {
 
   const { totalBeforeDiscount, totalAfterDiscount, totalDiscount } = calculateTotal()
 
-  const getAppliedDiscount = ({ product: { discounts }, quantity }: CartItem) => {
+  const getAppliedDiscount = ({ product: { discounts }, quantity }: CartItemType) => {
     return discounts.reduce((acc, cur) => {
       return quantity >= cur.quantity ? Math.max(acc, cur.rate) : acc;
     }, 0);
@@ -53,42 +54,14 @@ export const CartPage = ({ products, coupons }: Props) => {
         >
           <div className="space-y-2">
             {cart.map(item => {
-              const appliedDiscount = getAppliedDiscount(item);
               return (
-                <div key={item.product.id} className="flex justify-between items-center bg-white p-3 rounded shadow">
-                  <div>
-                    <span className="font-semibold">{item.product.name}</span>
-                    <br />
-                    <span className="text-sm text-gray-600">
-                      {item.product.price}원 x {item.quantity}
-                      {appliedDiscount > 0 && (
-                        <span className="text-green-600 ml-1">
-                          ({(appliedDiscount * 100).toFixed(0)}% 할인 적용)
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                  <div>
-                    <button
-                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                      className="bg-gray-300 text-gray-800 px-2 py-1 rounded mr-1 hover:bg-gray-400"
-                    >
-                      -
-                    </button>
-                    <button
-                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                      className="bg-gray-300 text-gray-800 px-2 py-1 rounded mr-1 hover:bg-gray-400"
-                    >
-                      +
-                    </button>
-                    <button
-                      onClick={() => removeFromCart(item.product.id)}
-                      className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                    >
-                      삭제
-                    </button>
-                  </div>
-                </div>
+                <CartItem
+                  appliedDiscount={getAppliedDiscount(item)}
+                  increaseQuantity={() => updateQuantity(item.product.id, item.quantity + 1)}
+                  decreaseQuantity={() => updateQuantity(item.product.id, item.quantity - 1)}
+                  removeCartItem={() => removeFromCart(item.product.id)}
+                  {...item}
+                />
               );
             })}
           </div>
